@@ -1,16 +1,13 @@
-unit AutoComplete.ComboBox;
+unit AutoComplete.ComboEdit;
 
 interface
 
 uses
-  System.SysUtils,
-  System.Classes,
-  FMX.Types,
-  FMX.Controls,
-  FMX.ListBox;
+  System.SysUtils, System.Classes, FMX.Types, FMX.Controls,
+  FMX.Controls.Presentation, FMX.Edit, FMX.ComboEdit;
 
 type
-  TAutoComboBox = class(TComboBox)
+  TAutoComboEdit = class(TComboEdit)
   private
     { Private declarations }
     FLastKeyPress: TDateTime;
@@ -19,8 +16,8 @@ type
   protected
     { Protected declarations }
     procedure SetKeyPressSearchDelay(AValue: Integer);
-     function GetKeyPressSearchDelay: Integer;
-     procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
+    function GetKeyPressSearchDelay: Integer;
+    procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
   public
     { Public declarations }
     function SearchDropDown(AText: string; AShowDropDown: Boolean = True): Integer;
@@ -34,25 +31,31 @@ procedure Register;
 implementation
 
 uses
-  DateUtils,
-  StrUtils;
+  System.StrUtils,
+  System.DateUtils,
+  System.UITypes;
 
 procedure Register;
 begin
-  RegisterComponents('Auto Complete', [TAutoComboBox]);
+  RegisterComponents('Auto Complete', [TAutoComboEdit]);
 end;
 
-{ TAutoComboBox }
+{ TAutoComboEdit }
 
-function TAutoComboBox.GetKeyPressSearchDelay: Integer;
+function TAutoComboEdit.GetKeyPressSearchDelay: Integer;
 begin
   SetKeyPressSearchDelay(FKeyPressSearchDelay);
   Result := FKeyPressSearchDelay;
 end;
 
-procedure TAutoComboBox.KeyDown(var Key: Word;
-  var KeyChar: System.WideChar; Shift: TShiftState);
+procedure TAutoComboEdit.KeyDown(var Key: Word; var KeyChar: System.WideChar;
+  Shift: TShiftState);
 begin
+  if (Key = vkReturn) then
+  begin
+    Self.CloseDropDown;
+  end;
+
   if KeyChar in ['a' .. 'z', 'A' .. 'Z', '0' .. '9', #32] then
   begin
     if SecondsBetween(TimeOf(Now), FLastKeyPress) <= FKeyPressSearchDelay then
@@ -67,13 +70,13 @@ begin
       FLastKeyPress := TimeOf(Now);
       KeyChar := #0;
     end;
-
   end else begin
     inherited;
   end;
 end;
 
-function TAutoComboBox.SearchDropDown(AText: string; AShowDropDown: Boolean): Integer;
+function TAutoComboEdit.SearchDropDown(AText: string;
+  AShowDropDown: Boolean): Integer;
 
   function FindStartsTextIndex(Strings: TStrings; const SubStr: string):
   integer;
@@ -103,14 +106,14 @@ begin
    end;
 end;
 
-procedure TAutoComboBox.SetKeyPressSearchDelay(AValue: Integer);
+procedure TAutoComboEdit.SetKeyPressSearchDelay(AValue: Integer);
 begin
   if (AValue > 0) and (AValue <= 10) then
-   begin
-     FKeyPressSearchDelay := AValue;
-   end else begin
-     FKeyPressSearchDelay := 2;
-   end;
+  begin
+    FKeyPressSearchDelay := AValue;
+  end else begin
+    FKeyPressSearchDelay := 2;
+  end;
 end;
 
 end.
